@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
@@ -16,9 +17,14 @@ namespace PruebaJson
             using (StreamReader reader = new StreamReader(stream))
             {
                 string json = reader.ReadToEnd();
-                //productos = JsonConvert.DeserializeObject<Productos>(json);
+                json = json.TrimStart('[');
+                json = json.TrimEnd(']');
+
+                productos = JsonConvert.DeserializeObject<Productos>(json);
             }
             Console.WriteLine("El código EAN del producto es: " + productos.ean1);
+            Console.WriteLine("El precio venta público del producto es: " + productos.pvp);
+            Console.WriteLine("La última fecha actualización del producto es: " + productos.lastUpdatedDate);
             Console.ReadKey();
         }
     }
