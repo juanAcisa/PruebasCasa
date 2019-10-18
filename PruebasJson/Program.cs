@@ -16,7 +16,7 @@ namespace PruebaJson
             using (StreamReader reader = new StreamReader(stream))
             {
                 string json = reader.ReadToEnd();
-                productos = JsonConvert.DeserializeObject<Productos>(json);
+                //productos = JsonConvert.DeserializeObject<Productos>(json);
             }
             Console.WriteLine("El código EAN del producto es: " + productos.ean1);
             Console.ReadKey();
