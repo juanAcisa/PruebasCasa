@@ -10,7 +10,7 @@ namespace PruebaJson
     {
         static void Main(string[] args)
         {
-            Productos productos;
+            Producto producto;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://api.sinersis.es/api/products?limit=1&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw");
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             using (Stream stream = response.GetResponseStream())
@@ -20,15 +20,15 @@ namespace PruebaJson
                 json = json.TrimStart('[');
                 json = json.TrimEnd(']');
 
-                productos = JsonConvert.DeserializeObject<Productos>(json);
+                producto = JsonConvert.DeserializeObject<Producto>(json);
             }
-            Console.WriteLine("El código EAN del producto es: " + productos.ean1);
-            Console.WriteLine("El precio venta público del producto es: " + productos.pvp);
-            Console.WriteLine("La última fecha actualización del producto es: " + productos.lastUpdatedDate);
+            Console.WriteLine("El código EAN del producto es: " + producto.ean1);
+            Console.WriteLine("El precio venta público del producto es: " + producto.pvp);
+            Console.WriteLine("La última fecha actualización del producto es: " + producto.lastUpdatedDate);
             Console.ReadKey();
         }
     }
-    public class Productos
+    public class Producto
     {
         //[{"ean1":"105","trademark":"DE DIETRICH","model":"DME721Z","gamma":"BLANCA","family":"COCCION","article":"MICROONDAS","type":"GENERICO","subtype":"GENERICO","ean2":"0","pvp":"0.00","pvt":"0.00","active":true,"discontinued":true,"exclusive":false,"creationDate":"2011-06-01","lastUpdatedDate":"2017-03-08","previousEan":"0","web_category":"microondas","web_category_parent1":"hornos y micros","web_category_parent2":"electrodom\u00e9sticos"}]
         public string ean1 { get; set; }
