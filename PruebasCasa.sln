@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasCasa", "PruebasCasa\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasJson", "PruebasJson\PruebasJson.csproj", "{0A637D7D-35D9-4522-87D0-69C8A1CF6843}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pruebaJson_02", "pruebaJson_02\pruebaJson_02.csproj", "{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pruebaJson_03", "pruebaJson_03\pruebaJson_03.csproj", "{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{0A637D7D-35D9-4522-87D0-69C8A1CF6843}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A637D7D-35D9-4522-87D0-69C8A1CF6843}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A637D7D-35D9-4522-87D0-69C8A1CF6843}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

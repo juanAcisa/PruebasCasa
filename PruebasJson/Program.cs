@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace PruebaJson
 {
@@ -17,7 +18,40 @@ namespace PruebaJson
             {
                 string json = reader.ReadToEnd();
 
-                var productos = JsonConvert.DeserializeObject<List<Producto>>(json);
+                var productos1 = JsonConvert.DeserializeObject<List<Producto>>(json);
+                foreach (Producto p in productos1)
+                {
+                    Console.WriteLine("El código EAN del producto es: " + p.ean1);
+                    Console.WriteLine("El precio venta público del producto es: " + p.pvp);
+                    Console.WriteLine("La última fecha actualización del producto es: " + p.lastUpdatedDate);
+
+                    Console.WriteLine("\n");
+                }
+            }
+
+            // Petición a WEB
+            try
+            {
+                    string url = "";
+                    url += @"http://api.sinersis.es/api/products?lastsync=";
+                    url += @"2019-10-01%2000%3A00%3A00";
+                    url += @"&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+                    url = @"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+
+                // Crear petición
+                HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(url);
+                solicitud.Method = "POST";
+                solicitud.Accept = "application/vnd.sinersis.api-v2+json";
+                solicitud.ContentType = "application/json";
+
+
+                HttpWebResponse respuesta = (HttpWebResponse)solicitud.GetResponse();
+                Stream flujoRespuesta = respuesta.GetResponseStream();
+                var flujoLector = new StreamReader(flujoRespuesta);
+
+                string cadenaJson = flujoLector.ReadToEnd();
+
+                var productos = JsonConvert.DeserializeObject<List<Producto>>(cadenaJson);
                 foreach (Producto p in productos)
                 {
                     Console.WriteLine("El código EAN del producto es: " + p.ean1);
@@ -27,6 +61,58 @@ namespace PruebaJson
                     Console.WriteLine("\n");
                 }
             }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+
+            //// Prueba https://stackoverflow.com/questions/9145667/how-to-post-json-to-a-server-using-c
+            //try
+            //{
+            //    string url = "";
+            //    url += @"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+
+
+            //    // create a request
+            //    HttpWebRequest request = (HttpWebRequest)
+            //    WebRequest.Create(url); request.KeepAlive = false;
+            //    request.ProtocolVersion = HttpVersion.Version10;
+            //    request.Method = "POST";
+
+
+            //    // turn our request string into a byte stream
+            //    string json = "";
+            //    byte[] postBytes = Encoding.UTF8.GetBytes(json);
+
+            //    // this is important - make sure you specify type this way
+            //    //request.ContentType = "application/json; charset=UTF-8";
+            //    request.Accept = @"application/vnd.sinersis.api-v2+json";
+            //    request.ContentType = "application/json";
+            //    request.ContentLength = postBytes.Length;
+            //    //request.CookieContainer = Cookies;
+            //    //request.UserAgent = currentUserAgent;
+            //    Stream requestStream = request.GetRequestStream();
+
+            //    // now send it
+            //    requestStream.Write(postBytes, 0, postBytes.Length);
+            //    requestStream.Close();
+
+            //    // grab te response and print it out to the console along with the status code
+            //    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            //    string result;
+            //    using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
+            //    {
+            //        result = rdr.ReadToEnd();
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+
+
+
+
 
             Console.ReadKey();
         }
