@@ -10,25 +10,6 @@ namespace PruebaJson
     {
         static void Main(string[] args)
         {
-            Producto producto;
-
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(@"http://api.sinersis.es/api/products?limit=1&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw");
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-            using (Stream stream = response.GetResponseStream())
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string json = reader.ReadToEnd();
-                json = json.TrimStart('[');
-                json = json.TrimEnd(']');
-
-                producto = JsonConvert.DeserializeObject<Producto>(json);
-                Console.WriteLine("El código EAN del producto es: " + producto.ean1);
-                Console.WriteLine("El precio venta público del producto es: " + producto.pvp);
-                Console.WriteLine("La última fecha actualización del producto es: " + producto.lastUpdatedDate);
-            }
-
-            Console.WriteLine("\n\n\n Otros \n\n\n");
-
             HttpWebRequest req = (HttpWebRequest)WebRequest.Create(@"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw");
             using (HttpWebResponse response = (HttpWebResponse)req.GetResponse())
             using (Stream stream = response.GetResponseStream())
@@ -42,6 +23,8 @@ namespace PruebaJson
                     Console.WriteLine("El código EAN del producto es: " + p.ean1);
                     Console.WriteLine("El precio venta público del producto es: " + p.pvp);
                     Console.WriteLine("La última fecha actualización del producto es: " + p.lastUpdatedDate);
+
+                    Console.WriteLine("\n");
                 }
             }
 
