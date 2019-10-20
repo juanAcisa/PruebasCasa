@@ -32,14 +32,14 @@ namespace PruebaJson
             // Petición a WEB
             try
             {
-                    string url = "";
-                    //url += @"http://api.sinersis.es/api/products?lastsync=";
-                    //url += @"2019-10-01%2000%3A00%3A00";
-                    //url += @"&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
-                    url = @"http://api.sinersis.es/api/products?lastsync=2019-10-01%2000%3A00%3A00&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+                    string uri = "";
+                    //uri += @"http://api.sinersis.es/api/products?lastsync=";
+                    //uri += @"2019-10-01%2000%3A00%3A00";
+                    //uri += @"&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+                    uri = @"http://api.sinersis.es/api/products?lastsync=2019-10-01%2000%3A00%3A00&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
 
                 // Crear petición
-                HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(url);
+                HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(uri);
                 solicitud.Method = "POST";
                 solicitud.Accept = "application/vnd.sinersis.api-v2+json";
                 solicitud.ContentType = "application/json";
@@ -69,13 +69,13 @@ namespace PruebaJson
             //// Prueba https://stackoverflow.com/questions/9145667/how-to-post-json-to-a-server-using-c
             //try
             //{
-            //    string url = "";
-            //    url += @"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+            //    string uri = "";
+            //    uri += @"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
 
 
             //    // create a request
             //    HttpWebRequest request = (HttpWebRequest)
-            //    WebRequest.Create(url); request.KeepAlive = false;
+            //    WebRequest.Create(uri); request.KeepAlive = false;
             //    request.ProtocolVersion = HttpVersion.Version10;
             //    request.Method = "POST";
 
