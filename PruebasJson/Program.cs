@@ -33,10 +33,10 @@ namespace PruebaJson
             try
             {
                     string url = "";
-                    url += @"http://api.sinersis.es/api/products?lastsync=";
-                    url += @"2019-10-01%2000%3A00%3A00";
-                    url += @"&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
-                    url = @"http://api.sinersis.es/api/products?limit=5&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+                    //url += @"http://api.sinersis.es/api/products?lastsync=";
+                    //url += @"2019-10-01%2000%3A00%3A00";
+                    //url += @"&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
+                    url = @"http://api.sinersis.es/api/products?lastsync=2019-10-01%2000%3A00%3A00&access_token=ZTE5MmFiMjAyNzJlMzc1MzZmMjI0M2RjZTRlN2RlYzQwYTUwOGIzNDA4MmYxMjI4YTMwNDUyNzc2YjNjOGFiYw";
 
                 // Crear petición
                 HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(url);
