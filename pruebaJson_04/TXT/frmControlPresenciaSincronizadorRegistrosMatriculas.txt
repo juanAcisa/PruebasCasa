@@ -1,0 +1,780 @@
+﻿using AcisaBaseDeDatos;
+using AcisaControles;
+using AcisaRecursos;
+using ContacisaBaseDeDatos;
+using ContacisaBaseDeDatos.ControlPresencia;
+using ContacisaRecursos;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+using System.Xml;
+using System.Xml.Serialization;
+using static Contacisa.frmMdi;
+
+namespace Contacisa
+{
+    public partial class frmControlPresenciaSincronizadorRegistrosMatriculas : frmPlantillaMantenimientos
+    {
+
+
+        DLG fDelegacion = null;
+        bool fModoAutomaticoEnEjecucion = false;
+        bool fParametroControlEntradaSalidaVehiculosActualizarFormularioGaritaAlRecuperarLog = false;
+        bool fParametroControlEntradaSalidaVehiculosRellenarInformacionConRegistroAnterior = false;
+
+        bool fConfiguracionControlEntradaSalidaSincronizadorModoAutomaticoDefecto = false;
+        bool fParametroUsuarioFiltrosPorDelegacion = false;
+
+
+        DateTime fFechaInicioFormulario;
+
+
+        public frmControlPresenciaSincronizadorRegistrosMatriculas()
+            : base()
+        {
+            InitializeComponent();
+
+            // Búsquedas
+            {
+                this.tbDelegacion.BusquedaCampo = nameof(DLG.CodigoDelegacion);
+                this.tbDelegacion.BusquedaFormulario = typeof(frmDelegacionesListar);
+            }
+
+            // RequiereControlesValidados
+            {
+              
+            }
+            
+        }
+
+
+        #region Formulario
+
+        private void frmHorarios_Load(object sender, EventArgs e)
+        {
+            this.fFechaInicioFormulario = DateTime.Now;
+
+
+            this.fParametroUsuarioFiltrosPorDelegacion = Globales.gConfiguracion.Parametros.UsuarioFiltrosPorDelegacion;
+
+            if (this.fParametroUsuarioFiltrosPorDelegacion)
+            {
+                // Obtener la delegación del usuario.
+                this.tbDelegacion.Valor = DelegacionUsuarioObtener();
+                this.DelegacionLeer();
+            }
+
+
+            this.fConfiguracionControlEntradaSalidaSincronizadorModoAutomaticoDefecto = bool.Parse(Contacisa.Properties.Settings.Default.ControlEntradaSalidaSincronizadorMatriculasModoAutomaticoDefecto);
+            this.cbModoAutomatico.Checked = this.fConfiguracionControlEntradaSalidaSincronizadorModoAutomaticoDefecto;
+
+
+            this.CamaraDispositivoEnlaces();
+
+            this.timerSincronizacionAutomatica.Interval = Properties.Settings.Default.ControlPresenciaSincronizacionCamarasSegundos.NumeroInt() * 1000;
+
+            this.fParametroControlEntradaSalidaVehiculosActualizarFormularioGaritaAlRecuperarLog = Globales.gConfiguracion.Parametros.ControlEntradaSalidaVehiculosActualizarFormularioGaritaAlRecuperarLog;
+            this.fParametroControlEntradaSalidaVehiculosRellenarInformacionConRegistroAnterior = Globales.gConfiguracion.Parametros.ControlEntradaSalidaVehiculosRellenarInformacionConRegistroAnterior;
+            #region Grid cámaras
+            {
+                // Columnas
+                {
+                    DataGridViewColumn gridColumna = null;
+
+                    gridColumna = this.gridCamaras.NuevaColumnaCheckBox<CDM_Grid>(x => x.Checked);
+                    gridColumna.ReadOnly = false;
+
+                    gridColumna = this.gridCamaras.NuevaColumna<CDM_Grid>(x => x.Descripcion);
+                    gridColumna = this.gridCamaras.NuevaColumna<CDM_Grid>(x => x.DireccionIp);
+                    gridColumna = this.gridCamaras.NuevaColumna<CDM_Grid>(x => x.DLG_DescripcionDelegacion, true);
+                }
+
+                // Filtros iniciales
+                {
+                }
+
+                // Orden
+                {
+
+                }
+            }
+            #endregion
+
+
+            #region Grid registros Logs
+            {
+                // Columnas
+                {
+                    DataGridViewColumn gridColumna = null;
+                
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.CDM_DescripcionCamara);
+                   
+
+                    //gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.CodigoDetectorMatricula);
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.Matricula);
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.Pais);
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.Carril);
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.Posicion);
+                    
+
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.FechaRegistro);
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.HoraRegistro);
+                    gridColumna.DefaultCellStyle.Format = "00:00:00";
+
+                    gridColumna = this.gridRegistros.NuevaColumna<RMD_Grid>(x => x.DLG_DescripcionDelegacion, true);
+                    gridColumna.MinimumWidth = 100;
+                }
+
+                // Filtros iniciales
+                {
+                }
+
+                // Orden
+                {
+                    
+                }
+            }
+            #endregion
+
+            
+
+            this.ActivarBotones(true);
+        }
+
+
+        public override void CapturarEventoMdi(EventosMdi pEvento)
+        {
+            try
+            {
+                /*if (pEvento == EventosMdi.RegistroPrimero || pEvento == EventosMdi.RegistroAnterior || pEvento == EventosMdi.RegistroSiguiente || pEvento == EventosMdi.RegistroUltimo)
+                    this.CapturarEventoMdiRegistro<CDM>(pEvento, Globales.gBaseDeDatos, ref this.fCamaraDispositivoMatriculas, this.CamaraDispositivoLeer);
+                else*/
+                base.CapturarEventoMdi(pEvento);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
+        #endregion
+
+
+        #region
+        #endregion
+
+        #region Controles
+        
+
+       
+
+        private void DelegacionLeer()
+        {
+            this.fDelegacion = DLG.BuscarPorClave(Globales.gBaseDeDatos, this.tbDelegacion.Valor.ToString());
+            this.DelegacionEnlaces();
+        }
+
+        private string DelegacionUsuarioObtener()
+        {
+            AppUsuarios usuario = AppUsuarios.BuscarPorClave(Globales.gBaseDeDatos, Globales.SubEmpresa, Globales.Usuario);
+
+            if (usuario != null)
+                return usuario.Delegacion;
+
+            return "";
+        }
+
+
+        #endregion
+
+
+        #region Botones
+
+        private void botAceptar_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void botCancelar_Click(object sender, EventArgs e)
+        {
+            if (DialogResult.Yes == MessageBox.Show("¿Seguro que desea cancelar el registro?", "Cancelar", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button2))
+                this.RolLimpiar();
+        }
+
+        private void botBorrar_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        #endregion
+
+
+        #region Enlaces
+
+        private void CamaraDispositivoEnlaces()
+        {
+
+        }
+
+
+        private void DelegacionEnlaces()
+        {
+            this.tbDelegacion.EnlazarConEntidad(this.fDelegacion, x => x.CodigoDelegacion);
+            this.tbDescripcionDelegacion.EnlazarConEntidad(this.fDelegacion, x => x.DescripcionDelegacion);
+        }
+
+
+        #endregion
+
+
+        #region Funciones
+
+        
+
+        
+
+        private void RolLimpiar()
+        {
+            
+        }
+
+        private void CamarasDispositivosListar()
+        {
+            List<CDM_Grid> camarasDispositivos = null;
+
+
+            string sql = "";
+            List<AcisaDbParametros> sqlParametros = new List<AcisaDbParametros>();
+
+            sql +=  "SELECT 'true' as Checked ";
+            sql +=  "\n , dlg." + Base.PropiedadCampoSql<DLG>(x=>x.DescripcionDelegacion) + " as DLG_DescripcionDelegacion ";
+            sql +=  "\n , cdm.* ";
+            sql +=  "\n FROM " + nameof(CDM) + " cdm ";
+            sql += "\n JOIN " + nameof(DLG) + " dlg ";
+            sql +=  "\n ON " +Globales.gBaseDeDatos.SqlOn<CDM, DLG>("cdm", x => x.CodigoDelegacion, "dlg", x => x.CodigoDelegacion) + " ";
+            
+            if(this.fDelegacion != null)
+            {
+                //SQL Delegacion filtro
+                sql += "\n AND " + Globales.gBaseDeDatos.SqlIgualacion<DLG>(ref sqlParametros,"dlg", x=>x.CodigoDelegacion, this.fDelegacion.CodigoDelegacion) + " ";
+            }
+
+            camarasDispositivos = Base.ListarConSql<CDM_Grid>(Globales.gBaseDeDatos, sql, sqlParametros);
+
+            this.gridCamaras.DataSourceLimpiar();
+            if (camarasDispositivos != null)
+                this.gridCamaras.DataSourceIniciar(camarasDispositivos);
+            else
+                this.gridCamaras.DataSourceIniciar(new List<CDM_Grid>());
+
+        }
+
+        private List<RMD_Grid> SolicitarRegistrosMatriculasDetectadas(CDM_Grid dispositivoCamara,  DateTime? fechaDesde)
+        {
+            List<RMD_Grid> listadoRegistros = new List<RMD_Grid>();
+            bool lecturaRegistrosCorrecta = true;
+            string mensajeError = "";
+
+            if (dispositivoCamara != null)
+            {
+                try
+                {
+                    System.Net.ServicePointManager.ServerCertificateValidationCallback +=
+                          (sender, cert, chain, sslPolicyErrors) =>
+                          {
+                              return true;
+                          };
+
+                    HttpWebRequest req = null;
+                    HttpWebResponse res = null;
+
+                    string postData = "";
+
+                    // Forzamos a que siempre se pidan desde una fecha.
+                    if (!fechaDesde.HasValue)
+                        fechaDesde = DateTime.Now.AddMonths(-1);
+                    
+                    postData = "<AfterTime><picTime>" + fechaDesde.Value.ToString("yyyyMMddHHmmss") + "</picTime></AfterTime>";
+
+                    var data = Encoding.ASCII.GetBytes(postData);
+
+                    string url = dispositivoCamara.DireccionIp;
+                    if (!url.EndsWith("/"))
+                        url += "/";
+                    url += "/ISAPI/Traffic/channels/1/vehicleDetect/plates";
+
+                    if (!url.Contains("http"))
+                        url = "http://" + url;
+
+                    req = (HttpWebRequest)WebRequest.Create(url);
+                    req.Method = "POST";
+                    req.Accept = "application/xml";
+                    req.ContentType = "application/xml; charset=utf-8";
+                    req.ContentLength = data.Length;
+                    req.Headers.Add("Authorization", "Basic " + Convert.ToBase64String(Encoding.Default.GetBytes(dispositivoCamara.Usuario + ":" + dispositivoCamara.Clave)));
+                    var newStream = req.GetRequestStream();
+                    newStream.Write(data, 0, data.Length);
+                    newStream.Close();
+
+                    res = (HttpWebResponse)req.GetResponse();
+                    Stream responseStream = res.GetResponseStream();
+                    var streamReader = new StreamReader(responseStream);
+
+                    string txt = streamReader.ReadToEnd();
+                    txt = txt.Replace("\r\n", "");
+
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(txt);
+
+                    string xpath = "//def:Plates";
+
+                    XmlNode root = xmlDoc.DocumentElement;
+
+                    // create ns manager
+                    XmlNamespaceManager xmlnsManager = new XmlNamespaceManager(xmlDoc.NameTable);
+                    xmlnsManager.AddNamespace("def", "http://www.hikvision.com/ver20/XMLSchema");
+
+
+                    var node = root.SelectSingleNode(xpath, xmlnsManager);
+
+                    listadoRegistros = new List<RMD_Grid>();
+                    foreach (XmlNode childrenNode in node.SelectNodes("//def:Plate", xmlnsManager))
+                    {
+                        try
+                        {
+                            string carril = childrenNode.SelectSingleNode("def:laneNo", xmlnsManager).InnerText;
+                            string lista = childrenNode.SelectSingleNode("def:matchingResult", xmlnsManager).InnerText;
+                            string nombreImagen = childrenNode.SelectSingleNode("def:picName", xmlnsManager).InnerText;
+                            string numeroMatricula = childrenNode.SelectSingleNode("def:plateNumber", xmlnsManager).InnerText;
+                            string pais = childrenNode.SelectSingleNode("def:country", xmlnsManager).InnerText;
+                            string posicion = childrenNode.SelectSingleNode("def:direction", xmlnsManager).InnerText;
+
+                            DateTime fechaCaptura = DateTime.ParseExact(childrenNode.SelectSingleNode("def:captureTime", xmlnsManager).InnerText.Substring(0, 15), "yyyyMMddTHHmmss", null);
+
+                            RMD_Grid registroLog = new RMD_Grid();
+
+                            registroLog.Carril = carril;
+                            registroLog.Lista = string.IsNullOrEmpty(lista) ? "" : registroLog.ValoresTraducidos[lista];
+                            registroLog.NombreImagen = nombreImagen;
+                            registroLog.Matricula = numeroMatricula;
+                            registroLog.Pais = pais;
+                            registroLog.Posicion = string.IsNullOrEmpty(posicion) ? "" : registroLog.ValoresTraducidos[posicion.ToLower()];
+
+                            registroLog.FechaRegistro = fechaCaptura;
+                            registroLog.HoraRegistro = fechaCaptura.ToString("HHmmss").NumeroDecimal();
+
+                            registroLog.CodigoDetectorMatricula = dispositivoCamara.CodigoDetectorMatricula;
+
+
+                            // Campos opcionales, solo visuales
+                            registroLog.CDM_DescripcionCamara = dispositivoCamara.Descripcion;
+                            registroLog.DLG_DescripcionDelegacion = dispositivoCamara.DLG_DescripcionDelegacion;
+
+                            listadoRegistros.Add(registroLog);
+                        }
+                        catch (Exception e)
+                        {
+                            lecturaRegistrosCorrecta = false;
+                            mensajeError += e.Message + " \n";
+                            throw e;
+
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    //MessageBox.Show("Ha ocurrido un error durante petición de registros al dispositivo "+e.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    throw e;
+                }
+            }
+
+            return listadoRegistros;
+
+        }
+
+
+
+
+
+
+        #endregion
+
+
+        #region ###Lineas
+
+        #region Clase grid Cámaras
+
+        class CDM_Grid : CDM
+        {
+            #region Propiedades
+
+            private bool _Checked = false;
+
+            [CampoVirtual]
+            [Titulo("Sel.")]
+            public bool Checked
+            {
+                get { return this._Checked; }
+                set { this.SetPropiedad(ref this._Checked, value); }
+            }
+
+
+            private string _DLG_DescripcionDelegacion = "";
+
+            [CampoVirtual]
+            [Titulo("Delegación")]
+            public string DLG_DescripcionDelegacion
+            {
+                get { return this._DLG_DescripcionDelegacion; }
+                set { this.SetPropiedad(ref this._DLG_DescripcionDelegacion, value); }
+            }
+
+
+            #endregion
+
+
+            public CDM_Grid()
+                : base()
+            { }
+
+            public CDM_Grid(DataRow pFila)
+                : base(pFila)
+            { }
+        }
+
+        #endregion
+
+        #region Clase grid Registros
+
+        public class RMD_Grid : RMD
+        {
+            #region Propiedades
+
+            private string _DLG_DescripcionDelegacion = "";
+
+            [CampoVirtual]
+            [Titulo("Delegación")]
+            public string DLG_DescripcionDelegacion
+            {
+                get { return this._DLG_DescripcionDelegacion; }
+                set { this.SetPropiedad(ref this._DLG_DescripcionDelegacion, value); }
+            }
+
+            private string _CDM_DescripcionCamara = "";
+
+            [CampoVirtual]
+            [Titulo("Cámara")]
+            public string CDM_DescripcionCamara
+            {
+                get { return this._CDM_DescripcionCamara; }
+                set { this.SetPropiedad(ref this._CDM_DescripcionCamara, value); }
+            }
+
+            #endregion
+
+
+            public RMD_Grid()
+                : base()
+            { }
+
+            public RMD_Grid(DataRow pFila)
+                : base(pFila)
+            { }
+            
+        }
+        #endregion
+
+        #endregion
+        private void botAplicarFiltros_Click(object sender, EventArgs e)
+        {
+            using (new WaitCursor())
+            {
+                this.CamarasDispositivosListar();
+            }
+        }
+
+        private List<RMD_Grid> IntegrarLogsMatriculas(List<RMD_Grid> listadoRegistrosLog)
+        {
+            AcisaDbTransaccion transaccion = null;
+            try
+            {
+                List<RMD_Grid> registrosNuevos = new List<RMD_Grid>();
+                transaccion = Globales.gBaseDeDatos.TrasaccionIniciar();
+                int numeroRegistrosIntegrados = 0;
+                foreach (RMD_Grid registro in listadoRegistrosLog)
+                {
+                    //if (string.IsNullOrEmpty(registro.MensajeError))
+                    // {
+
+                    RMD registroSimilar = RMD.BuscarPorClave(Globales.gBaseDeDatos,transaccion, registro.CodigoDetectorMatricula, registro.FechaRegistro.Value, registro.HoraRegistro);
+
+                    if (registroSimilar == null)
+                    {
+                        registro.Actualizar(Globales.gBaseDeDatos, transaccion);
+                        numeroRegistrosIntegrados++;
+                        registrosNuevos.Add(registro);
+
+                        if(this.fParametroControlEntradaSalidaVehiculosActualizarFormularioGaritaAlRecuperarLog)
+                        {
+                            this.ActualizarControlEntradaSalidaVehiculos(Globales.gBaseDeDatos, transaccion, registro);
+                        }
+                    }
+                    //}
+                }
+                
+
+                transaccion.Commit();
+                if(!fModoAutomaticoEnEjecucion)
+                    MessageBox.Show("Se han integrado " + numeroRegistrosIntegrados + " registros nuevos correctamente.", "Integración registros", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return registrosNuevos;
+            }
+            catch (Exception ex)
+            {
+                if (transaccion != null && !transaccion.Terminada)
+                    transaccion.Rollback();
+
+
+                throw ex;
+            }
+        }
+
+
+        private void ActualizarControlEntradaSalidaVehiculos(AcisaDb pBaseDeDatos, AcisaDbTransaccion pTransaccion,  RMD pRegistro)
+        {
+            if(pRegistro != null && pRegistro.FechaRegistro.HasValue && pRegistro.FechaRegistro.Value.Date == DateTime.Now.Date)
+            {
+                CDM camara = CDM.BuscarPorClave(pBaseDeDatos, pTransaccion, pRegistro.CodigoDetectorMatricula);
+                if(camara != null)
+                {
+                    ESV registroEntradaSalida = ESV.BuscarPorFechaYMatricula(pBaseDeDatos, pTransaccion, pRegistro.FechaRegistro.Value, pRegistro.Matricula);
+                    if(registroEntradaSalida == null)
+                    {
+                        registroEntradaSalida = new ESV();
+                        registroEntradaSalida.Id = 0;
+                        registroEntradaSalida.Matricula = pRegistro.Matricula;
+
+                        if(camara.ModoCamara == Globales.gConfiguracion.ControlPresenciaModoCamaraEntrada)
+                            registroEntradaSalida.FechaLlegada = pRegistro.FechaRegistro.Value.Date;
+
+                    }
+
+                    // Si es una cámara de entrada, modificamos la hora de llegada
+                    if (camara.ModoCamara == Globales.gConfiguracion.ControlPresenciaModoCamaraEntrada)
+                    {
+                        // Si ya había hora de llegada/salida, nos encontramos ante un registro nuevo 
+                        //  - Si tenía hora de llegada, significa que ha entrado más de una vez al día.
+                        //  - Si ya tenía hora de salida, no es el mismo registro pues está accediendo nuevamente.
+                        if (registroEntradaSalida.HoraLlegada > 0 || registroEntradaSalida.HoraSalida > 0)
+                        {
+                            registroEntradaSalida.Id = 0;
+                            registroEntradaSalida.HoraSalida = 0;
+                        }
+                        registroEntradaSalida.HoraLlegada = pRegistro.HoraRegistro;
+                        registroEntradaSalida.FechaLlegada = pRegistro.FechaRegistro.Value.Date;
+                        
+                    }
+
+                    else if (camara.ModoCamara == Globales.gConfiguracion.ControlPresenciaModoCamaraSalida)
+                    {
+                        // Si no ha registrado hora de llegada previa, es un registro nuevo, algún vehículo que ha salido sin haber entrado durante el mismo día.
+                        if (registroEntradaSalida.HoraLlegada == 0 || registroEntradaSalida.HoraSalida > 0)
+                        {
+                            registroEntradaSalida.Id = 0;
+                            registroEntradaSalida.HoraLlegada = 0;
+                        }
+                        registroEntradaSalida.HoraSalida = pRegistro.HoraRegistro;
+                        registroEntradaSalida.FechaLlegada = pRegistro.FechaRegistro.Value.Date;
+                        registroEntradaSalida.FechaSalida = pRegistro.FechaRegistro.Value.Date;
+                    }
+
+                    registroEntradaSalida.FechaUltimaModificacion = DateTime.Now.Date;
+                    registroEntradaSalida.HoraUltimaModificacion = DateTime.Now.ToString("HHmmss").NumeroDecimal();
+                    registroEntradaSalida.CodigoDelegacion = camara.CodigoDelegacion;
+
+
+                    if (this.fParametroControlEntradaSalidaVehiculosRellenarInformacionConRegistroAnterior)
+                    {
+                        ESV ultimoRegistrado = ESV.BuscarUltimoRegistrado(pBaseDeDatos, pTransaccion, registroEntradaSalida.Matricula);
+                        if(ultimoRegistrado != null)
+                        {
+                            registroEntradaSalida.CodigoTipoAccion = ultimoRegistrado.CodigoTipoAccion;
+                            registroEntradaSalida.Destino = ultimoRegistrado.Destino;
+                            registroEntradaSalida.EmpresaTransporte = ultimoRegistrado.EmpresaTransporte;
+                            registroEntradaSalida.NIF = ultimoRegistrado.NIF;
+                            registroEntradaSalida.Nombre = ultimoRegistrado.Nombre;
+                            registroEntradaSalida.Telefono = ultimoRegistrado.Telefono;
+                            registroEntradaSalida.TipoRegistro = ultimoRegistrado.TipoRegistro;
+                        }
+                    }
+
+                    registroEntradaSalida.Actualizar(pBaseDeDatos, pTransaccion);
+                }
+            }
+        }
+
+
+        private void RegistrosLogListar(List<RMD_Grid> listadoLogs)
+        {
+
+            this.gridRegistros.DataSourceLimpiar();
+            if (listadoLogs != null)
+                this.gridRegistros.DataSourceIniciar(listadoLogs.OrderByDescending(x=>x.FechaRegistro.Value).ThenByDescending(x=>x.HoraRegistro).ToList());
+            else
+                this.gridRegistros.DataSourceIniciar(new List<RMD>());
+           
+        }
+        
+
+        private void cbModoAutomatico_CheckedChanged(object sender, EventArgs e)
+        {
+            this.timerSincronizacionAutomatica.Enabled = this.cbModoAutomatico.Checked;
+            this.botSincronizacionCamaras.Enabled = this.cbModoAutomatico.Checked;
+            this.TimerActualizarTiempoRestante("[ Ejecución cada 1 segundos ]");
+        }
+
+        private void SincronizarRegistrosCamaras()
+        {
+            try
+            {
+                DateTime? fechaDesde = (DateTime?)DateTime.Now.AddDays(-20);
+
+                List<RMD_Grid> listadoRegistrosMatriculas = new List<RMD_Grid>();
+                List<RMD_Grid> listadoRegistrosMatriculasNuevos = new List<RMD_Grid>();
+
+                List<CDM_Grid> camarasSincronizar = null;
+
+                if (this.gridCamaras.Lista != null)
+                    camarasSincronizar = this.gridCamaras.Lista.Cast<CDM_Grid>().ToList();
+
+                if (camarasSincronizar != null)
+                {
+                    foreach (CDM_Grid camaraSincronizar in camarasSincronizar.Where(x => x.Checked))
+                    {
+                        listadoRegistrosMatriculas.AddRange(this.SolicitarRegistrosMatriculasDetectadas(camaraSincronizar, fechaDesde));
+                    }
+                }
+            
+                if (listadoRegistrosMatriculas != null)
+                {
+                    listadoRegistrosMatriculasNuevos = this.IntegrarLogsMatriculas(listadoRegistrosMatriculas);
+                }
+
+                if (this.gridRegistros.Lista != null)
+                    listadoRegistrosMatriculasNuevos.AddRange(this.gridRegistros.Lista.Cast<RMD_Grid>().ToList());
+
+                this.RegistrosLogListar(listadoRegistrosMatriculasNuevos);
+            }
+            catch (Exception e)
+            {
+                AcisaDbTransaccion transaccion = null;
+                try
+                {
+
+                    transaccion = Globales.gBaseDeDatos.TrasaccionIniciar();
+
+                    NCD comunicacionResultado = new NCD();
+                    comunicacionResultado.TipoDispositivo = nameof(CDM);
+                    comunicacionResultado.Mensaje = "Error: " + e.Message;
+                    comunicacionResultado.FechaComunicacion = DateTime.Now;
+                    comunicacionResultado.ErrorSN = Globales.gValorSCamposSN;
+
+                    comunicacionResultado.Actualizar(Globales.gBaseDeDatos, transaccion);
+
+                }
+                catch (Exception ex)
+                {
+                    // No se ha podido guardar el log de comunicación...
+                    if(transaccion != null)
+                    {
+                        transaccion.Rollback();
+                    }
+                }
+
+
+
+            }
+        }
+
+        private void TimerModoAutomatico_Tick(object sender, EventArgs e)
+        {
+            if (!this.fModoAutomaticoEnEjecucion)
+            {
+
+                int horaReinicio = int.Parse(Contacisa.Properties.Settings.Default.ControlEntradaSalidaSincronizadorMatriculasHoraReinicio);
+                int minutosReinicio = int.Parse(Contacisa.Properties.Settings.Default.ControlEntradaSalidaSincronizadorMatriculasMinutosReinicio);
+
+                DateTime fechaReferencia = DateTime.Now;
+
+                // Primero comprobamos que la hora/minuto de inicio del formulario sean anteriores a la del reinicio, si no, significa que la aplicación ha arrancado
+                // después de la hora de reinicio.
+
+                // Después confirmamos que la el instante actual: hora y minuto son mayores o iguales que los especificados en el reinicio
+
+                // Cuando se reinicie la aplicación, la fecha de inicio ya será superior a la de reinicio, y la primera condición evitará que se reinicie hasta el día siguiente.
+                if (this.fFechaInicioFormulario.Hour <= horaReinicio && fFechaInicioFormulario.Minute < minutosReinicio
+                    && fechaReferencia.Hour >= horaReinicio && fechaReferencia.Minute >= minutosReinicio
+                    )
+                {
+                    Application.Restart();
+                }
+                this.fModoAutomaticoEnEjecucion = true;
+
+                if (this.gridCamaras.Lista == null)
+                    this.CamarasDispositivosListar();
+
+                this.SincronizarRegistrosCamaras();
+
+                this.fModoAutomaticoEnEjecucion = false;
+            }
+        }
+
+        private void TimerActualizarTiempoRestante(string texto)
+        {
+            this.lbTiempoSincronizacion.Text = texto;
+            this.lbTiempoSincronizacion.Visible = this.cbModoAutomatico.Checked;
+        }
+
+        private void tbDelegacion_Validar(Control pControl, bool pEnlazando)
+        {
+            this.fDelegacion = DLG.BuscarPorClave(Globales.gBaseDeDatos, this.tbDelegacion.Valor.Cadena());
+
+            this.DelegacionEnlaces();
+
+            this.tbDelegacion.Validado = (this.fDelegacion != null);
+        }
+
+        private void tbDelegacion_BusquedaFinalizada(DataRow pRegistro)
+        {
+            if (pRegistro != null)
+            {
+                this.fDelegacion = DLG.BuscarPorId(Globales.gBaseDeDatos, pRegistro[nameof(DLG.Id)].NumeroInt());
+
+                this.DelegacionEnlaces();
+
+                this.tbDelegacion.Validado = (this.fDelegacion != null);
+            }
+        }
+
+        private void cbSeleccionarTodas_CheckedChanged(object sender, EventArgs e)
+        {
+            if (this.cbSeleccionarTodas.Checked)
+            {
+                if (this.gridCamaras.DataSource != null)
+                    foreach (CDM_Grid camara in this.gridCamaras.Lista)
+                        camara.Checked = true;
+            }
+        }
+
+        private void botSincronizacionCamaras_Click(object sender, EventArgs e)
+        {
+            this.SincronizarRegistrosCamaras();
+        }
+    }
+}
