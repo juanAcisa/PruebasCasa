@@ -5,11 +5,13 @@ VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasCasa", "PruebasCasa\PruebasCasa.csproj", "{BC1103FB-730D-4F2F-834E-D7616C7267A6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PruebasJson", "PruebasJson\PruebasJson.csproj", "{0A637D7D-35D9-4522-87D0-69C8A1CF6843}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PruebasJson", "PruebasJson\PruebasJson.csproj", "{0A637D7D-35D9-4522-87D0-69C8A1CF6843}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pruebaJson_02", "pruebaJson_02\pruebaJson_02.csproj", "{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pruebaJson_02", "pruebaJson_02\pruebaJson_02.csproj", "{B266D20C-CF56-4C0A-B7A2-7B446A183B0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pruebaJson_03", "pruebaJson_03\pruebaJson_03.csproj", "{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "pruebaJson_03", "pruebaJson_03\pruebaJson_03.csproj", "{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pruebaJson_04", "pruebaJson_04\pruebaJson_04.csproj", "{75B33D72-0D7C-4B60-80B2-56F030D5B317}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6E9818CD-1F0C-4DE6-A6F8-DC3E216E7BEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75B33D72-0D7C-4B60-80B2-56F030D5B317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75B33D72-0D7C-4B60-80B2-56F030D5B317}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75B33D72-0D7C-4B60-80B2-56F030D5B317}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75B33D72-0D7C-4B60-80B2-56F030D5B317}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
