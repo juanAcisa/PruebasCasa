@@ -17,10 +17,10 @@ namespace PruebaJson_05
                 try
                 {
                     string fecha = "2019-10-23";
+                    string token = "OWMxMzRiY2NmMmM5ZWQ3OWRhODgzMWZkODk1ZmQ0NjkzYWIyMTFlMTNlYmU3OWMyMWJjMzhjZTFjYzYyNjAxNQ";
+
                     string uri = "";
-                    uri += "http://api.sinersis.es/api/products?lastsync=";
-                    uri += fecha;
-                    uri += "%2000%3A00%3A00&access_token=OWMxMzRiY2NmMmM5ZWQ3OWRhODgzMWZkODk1ZmQ0NjkzYWIyMTFlMTNlYmU3OWMyMWJjMzhjZTFjYzYyNjAxNQ";
+                    uri += "http://api.sinersis.es/api/products?lastsync=" + fecha + "%2000%3A00%3A00&access_token=" + token;
 
                     // Crear petición
                     HttpWebRequest solicitud = (HttpWebRequest)WebRequest.Create(uri);
