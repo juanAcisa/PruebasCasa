@@ -28,7 +28,7 @@ namespace PruebaJson_05
                     solicitud.Accept = "application/vnd.sinersis.api-v2+json";
                     solicitud.ContentType = "application/json";
 
-
+                    // Obtener respuesta
                     HttpWebResponse respuesta = (HttpWebResponse)solicitud.GetResponse();
                     Stream flujoRespuesta = respuesta.GetResponseStream();
                     var flujoLector = new StreamReader(flujoRespuesta);
